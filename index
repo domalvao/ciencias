@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>Desafio de Ciências: Métodos e Técnicas</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+        .title-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- HEADER DA APLICAÇÃO -->
+    <header class="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-flask text-white text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold title-font bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                        Laboratório Virtual de Didática
+                    </h1>
+                    <p class="text-xs text-slate-400">Ensino de Ciências: Métodos e Técnicas (UNIVESP)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                    <i class="fa-solid fa-star text-amber-400"></i>
+                    <span class="text-xs text-slate-400">Pontuação:</span>
+                    <span id="score-counter" class="font-bold text-amber-400">1000</span>
+                </div>
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                    <i class="fa-solid fa-award text-emerald-400"></i>
+                    <span class="text-xs text-slate-400">Medalhas:</span>
+                    <span id="badge-counter" class="font-bold text-emerald-400">0/4</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ÁREA PRINCIPAL DO JOGO -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <section class="lg:col-span-8 space-y-4">
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl group">
+                <div class="aspect-video w-full relative">
+                    <div id="yt-player-container" class="absolute inset-0 w-full h-full bg-slate-900 flex items-center justify-center">
+                        <div id="yt-player"></div>
+                    </div>
+                    
+                    <div id="video-overlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 hidden z-30 transition-all duration-300">
+                        <div class="text-center max-w-md space-y-4">
+                            <div class="h-16 w-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto text-amber-400 mb-2">
+                                <i class="fa-solid fa-circle-question text-3xl animate-bounce"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold title-font text-white">Desafio Científico Detetado!</h3>
+                            <p class="text-slate-300 text-sm">
+                                O vídeo foi pausado estrategicamente. Responda corretamente ao desafio na consola lateral para desbloquear a continuação do vídeo.
+                            </p>
+                            <button onclick="focusQuiz()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/30 transition-all">
+                                Ir para a Pergunta <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="custom-alert" class="absolute top-4 left-4 right-4 bg-red-500/90 backdrop-blur-sm text-white px-4 py-3 rounded-xl border border-red-400 flex items-center justify-between shadow-xl z-20 transform -translate-y-20 opacity-0 transition-all duration-300">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                        <span id="alert-message" class="text-sm font-medium">Não podes avançar no tempo antes de responder ao desafio pendente!</span>
+                    </div>
+                    <button onclick="hideAlert()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 backdrop-blur-sm border border-slate-800/80 rounded-2xl p-4 space-y-3 shadow-lg">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center gap-1.5 font-medium">
+                        <i class="fa-solid fa-route text-indigo-400"></i> Progresso da Investigação
+                    </span>
+                    <span id="timeline-percentage" class="font-semibold text-indigo-400">0% Concluído</span>
+                </div>
+                
+                <div class="relative py-4">
+                    <div class="absolute h-1.5 w-full bg-slate-800 rounded-full top-1/2 transform -translate-y-1/2"></div>
+                    <div id="unlocked-progress-bar" class="absolute h-1.5 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full top-1/2 transform -translate-y-1/2 transition-all duration-300" style="width: 0%"></div>
+                    
+                    <div id="checkpoint-0" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 12.1%" title="Desafio 1: Observação do Sol">
+                        <span class="text-[9px] font-bold text-slate-400">1</span>
+                    </div>
+                    <div id="checkpoint-1" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 42.6%" title="Desafio 2: Quotidiano e Prática">
+                        <span class="text-[9px] font-bold text-slate-400">2</span>
+                    </div>
+                    <div id="checkpoint-2" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 51.8%" title="Desafio 3: Tipos de Aulas Práticas">
+                        <span class="text-[9px] font-bold text-slate-400">3</span>
+                    </div>
+                    <div id="checkpoint-3" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 79.5%" title="Desafio 4: Classificação de Animais">
+                        <span class="text-[9px] font-bold text-slate-400">4</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 text-[10px] sm:text-xs text-slate-500 font-medium">
+                    <div class="text-left">01:45 <br><span class="text-slate-400">Desafio 1</span></div>
+                    <div class="text-center">06:10 <br><span class="text-slate-400">Desafio 2</span></div>
+                    <div class="text-center">07:30 <br><span class="text-slate-400">Desafio 3</span></div>
+                    <div class="text-right">11:30 <br><span class="text-slate-400">Desafio 4</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-4 space-y-6">
+            
+            <div class="bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-2xl p-5 shadow-xl relative min-h-[350px] flex flex-col justify-between overflow-hidden">
+                <div class="absolute -right-10 -top-10 h-32 w-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -left-10 -bottom-10 h-32 w-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex-1 flex flex-col justify-between">
+                    <div id="quiz-empty-state" class="text-center py-10 my-auto space-y-4">
+                        <div class="h-12 w-12 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-center mx-auto text-indigo-400">
+                            <i class="fa-solid fa-play text-xl animate-pulse"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-lg">Vídeo em Reprodução</h4>
+                        <p class="text-xs text-slate-400 px-4">
+                            Presta atenção ao documentário sobre o Ensino de Ciências. O jogo irá pausar automaticamente e propor desafios de interpretação didática nos momentos chave.
+                        </p>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[11px] text-indigo-300 font-semibold">
+                            <i class="fa-solid fa-eye"></i> Observação Ativa
+                        </div>
+                    </div>
+
+                    <div id="quiz-container" class="space-y-4 hidden">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <span id="question-badge" class="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-xs font-bold uppercase tracking-wider">
+                                Desafio 1 de 4
+                            </span>
+                            <span class="text-xs text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-clock"></i> <span id="question-timestamp">01:45</span>
+                            </span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <h4 id="question-text" class="text-sm font-bold text-white leading-relaxed">
+                                No projeto da professora Débora em Campinas, qual o objetivo principal de levar os alunos do 2º ano para observar o sol?
+                            </h4>
+                        </div>
+
+                        <div id="options-group" class="space-y-2.5 pt-2"></div>
+
+                        <div id="feedback-panel" class="hidden rounded-xl p-3 border text-xs leading-relaxed transition-all duration-300">
+                            <div class="flex items-start gap-2.5">
+                                <div id="feedback-icon" class="mt-0.5"></div>
+                                <div>
+                                    <p id="feedback-title" class="font-bold mb-1"></p>
+                                    <p id="feedback-text" class="text-slate-300"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button id="btn-submit-answer" onclick="checkSelectedAnswer()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:from-slate-800 disabled:to-slate-800 disabled:cursor-not-allowed disabled:text-slate-500 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20" disabled>
+                                Validar Resposta <i class="fa-solid fa-check"></i>
+                            </button>
+                            <button id="btn-continue-video" onclick="resumeVideoAfterQuiz()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 hidden">
+                                Desbloquear Vídeo <i class="fa-solid fa-circle-play"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="game-finished-panel" class="text-center py-6 space-y-4 hidden">
+                        <div class="h-16 w-16 bg-gradient-to-tr from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto text-slate-950 shadow-lg shadow-amber-500/20">
+                            <i class="fa-solid fa-trophy text-3xl"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-xl title-font">Investigação Concluída!</h4>
+                        <p class="text-xs text-slate-300 px-2">
+                            Parabéns, Professor(a) em Formação! Superaste todos os dilemas pedagógicos e metodológicos do vídeo com distinção.
+                        </p>
+                        
+                        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-left space-y-2">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Competências Adquiridas:</div>
+                            <ul class="text-[11px] text-slate-300 space-y-1">
+                                <li><i class="fa-solid fa-check-double text-emerald-400 mr-1.5"></i> Compreensão da Investigação Científica</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-400 mr-1.5"></i> Desenho de Quotidiano Prático em Aula</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-400 mr-1.5"></i> Distinção de Exercícios, Pesquisa e Projetos</li>
+                                <li><i class="fa-solid fa-check-double text-emerald-400 mr-1.5"></i> Agrupamentos Didáticos e Classificação</li>
+                            </ul>
+                        </div>
+
+                        <button onclick="resetGame()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition-all">
+                            Jogar Novamente <i class="fa-solid fa-rotate-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 backdrop-blur-sm border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3 flex flex-col max-h-[280px]">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="text-sm font-bold title-font text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-book-bookmark text-purple-400"></i> Diário de Bordo
+                    </h3>
+                    <span id="journal-count" class="text-[10px] bg-slate-800 border border-slate-700 px-2 py-0.5 rounded-full text-slate-400">0/4 Insights</span>
+                </div>
+
+                <div id="journal-list" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
+                    <div id="journal-empty" class="text-center py-6 text-slate-500 italic">
+                        As tuas conclusões científicas aparecerão aqui à medida que responderes corretamente.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-slate-950/40 p-4 mt-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+            <p>© 2026 Laboratório Virtual de Didática das Ciências. Desenvolvido para formação ativa de professores.</p>
+            <div class="flex gap-4">
+                <a href="#rules" onclick="toggleHelpModal()" class="hover:text-indigo-400 transition-colors"><i class="fa-solid fa-circle-info mr-1"></i> Como Jogar</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="help-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="toggleHelpModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 class="text-xl font-bold title-font text-white flex items-center gap-2">
+                <i class="fa-solid fa-gamepad text-indigo-400"></i> Instruções do Jogo Científico
+            </h3>
+            
+            <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
+                <p>
+                    Bem-vindo(a) a este ambiente de aprendizagem dinâmico. O teu objetivo é assistir ao documentário didático da UNIVESP sobre o <strong>Ensino de Ciências</strong> e analisar as suas práticas.
+                </p>
+                <div class="space-y-2.5">
+                    <div class="flex items-start gap-3">
+                        <div class="h-6 w-6 rounded bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                        <p class="text-xs">O vídeo pausará automaticamente ao atingir os <strong>4 checkpoints</strong> indicados na linha do tempo.</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-6 w-6 rounded bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
+                        <p class="text-xs">Para cada checkpoint, um desafio de múltipla escolha será ativado na consola lateral direita.</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-6 w-6 rounded bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
+                        <p class="text-xs"><strong>Antisegregação do Tempo:</strong> Não podes avançar ou saltar o vídeo para a frente de forma a "pular" as perguntas pendentes.</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-6 w-6 rounded bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</div>
+                        <p class="text-xs">O erro é visto como uma oportunidade! Respostas erradas dão feedback reflexivo, permitindo que repenses a resposta sem travar totalmente a aprendizagem.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="toggleHelpModal(false)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30">
+                    Compreendi, Começar Investigação!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSuccessSound() {
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, now); 
+            gain1.gain.setValueAtTime(0.1, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.3);
+
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(659.25, now + 0.1); 
+            gain2.gain.setValueAtTime(0.1, now + 0.1);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now + 0.1);
+            osc2.stop(now + 0.4);
+
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'sine';
+            osc3.frequency.setValueAtTime(783.99, now + 0.2); 
+            gain3.gain.setValueAtTime(0.1, now + 0.2);
+            gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc3.connect(gain3);
+            gain3.connect(audioCtx.destination);
+            osc3.start(now + 0.2);
+            osc3.stop(now + 0.5);
+        }
+
+        function playErrorSound() {
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now); 
+            osc.frequency.linearRampToValueAtTime(110, now + 0.4); 
+            
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        function playVictorySound() {
+            initAudio();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + (idx * 0.1));
+                gain.gain.setValueAtTime(0.05, now + (idx * 0.1));
+                gain.gain.exponentialRampToValueAtTime(0.005, now + (idx * 0.1) + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + (idx * 0.1));
+                osc.stop(now + (idx * 0.1) + 0.25);
+            });
+        }
+    </script>
+
+    <script>
+        const questions = [
+            {
+                id: 0,
+                timestamp: 105,
+                timestampLabel: "01:45",
+                questionText: "No projeto de observação do Sol e das sombras com as crianças do 2º ano (prof.ª Débora), qual o intuito científico de desenhar as sombras em relação a um poste duas vezes por semana no mesmo horário?",
+                options: [
+                    "Apenas mantê-las ocupadas fora da sala de aula com atividades lúdicas de desenho.",
+                    "Repetir a observação exata de forma passiva para decorar o formato geométrico das sombras.",
+                    "Perceber que o Sol se movimenta em relação a um referencial e construir hipóteses sobre a passagem do tempo, semelhante ao raciocínio histórico dos povos antigos.",
+                    "Demonstrar que as sombras nunca mudam de lugar se o horário da observação for mantido."
+                ],
+                correctIndex: 2,
+                explanation: "Exatamente! Ao registar a posição das sombras em relação ao poste fixo sempre no mesmo horário, os alunos perceberam a variação temporal e o movimento aparente do Sol, estimulando hipóteses próprias.",
+                insight: "Observação Solar (01:45): O desenho repetido com referenciais fixos ajuda as crianças a compreenderem a relatividade e constroem intuição temporal histórica (calendários)."
+            },
+            {
+                id: 1,
+                timestamp: 370,
+                timestampLabel: "06:10",
+                questionText: "Segundo as reflexões do vídeo e a fala da Prof.ª Miriam Krasilchik, o que é um aspeto essencial para que o ensino de ciências nas séries iniciais seja de facto eficiente?",
+                options: [
+                    "Isolar os alunos de laboratórios práticos para evitar o risco de acidentes.",
+                    "Seguir à risca as páginas do manual didático teórico de forma dogmática.",
+                    "Promover aulas expositivas de silêncio absoluto com foco em decorar classificações taxonómicas.",
+                    "Provocar o aluno vinculando o ensino ao seu quotidiano, estimulando a experimentação de forma a que ele lide inclusivamente com o inesperado."
+                ],
+                correctIndex: 3,
+                explanation: "Certíssimo! Miriam Krasilchik ressalta que a força do ensino prático está em provocar o aluno a encontrar e resolver o inesperado, em vez de ver o conhecimento como uma obrigação escolar imposta.",
+                insight: "Quotidiano e Prática (06:10): A ciência eficiente precisa de provocação contínua, vínculo à realidade do aluno e espaço para lidar com o erro e o imprevisto experimental."
+            },
+            {
+                id: 2,
+                timestamp: 450,
+                timestampLabel: "07:30",
+                questionText: "O vídeo classifica as atividades práticas em três categorias: Exercícios, Investigações e Projetos. Como é definida a categoria de 'Investigações'?",
+                options: [
+                    "Atividades onde o aluno recebe um problema aberto e precisa de desenhar a resolução, testando as suas próprias hipóteses e possibilidades.",
+                    "Aulas de laboratório que funcionam como puras 'receitas de cozinha' passo a passo.",
+                    "Atividades onde o aluno tem total liberdade sem qualquer intervenção ou mediação do professor.",
+                    "Exercícios puramente matemáticos de memorização de fórmulas sem ligação a problemas físicos."
+                ],
+                correctIndex: 0,
+                explanation: "Excelente! Nas investigações, o problema é dado, mas a forma de o resolver não é uma receita rígida. O aluno ganha papel ativo ao propor hipóteses, analisar variáveis e debater caminhos.",
+                insight: "Métodos Práticos (07:30): Diferente dos meros exercícios de receita, a Investigação propõe problemas de caminhos abertos que exigem do estudante a tomada ativa de decisões."
+            },
+            {
+                id: 3,
+                timestamp: 690,
+                timestampLabel: "11:30",
+                questionText: "No jogo de cartões de animais promovido pela prof.ª Maria Helena com crianças de 5 anos em Paulínia, o que caracteriza a atitude científica dos pequenos?",
+                options: [
+                    "A mera repetição das classificações biológicas ditadas pelo professor.",
+                    "O agrupamento dos animais com base nos seus próprios critérios partilhados, seguidos da obrigação de justificar e debater os seus argumentos com o grupo.",
+                    "O treino mecânico de animais para realização de truques domésticos.",
+                    "Apenas a coloração individual e passiva de desenhos de biologia."
+                ],
+                correctIndex: 1,
+                explanation: "Fantástico! O que os aproxima da atitude científica é a necessidade de observar, propor critérios próprios de classificação (como agrupamentos) e, fundamentalmente, justificar as suas teorias aos pares.",
+                insight: "A Classificação Científica (11:30): Agrupar elementos por critérios inventados e defendê-los racionalmente perante os pares reproduz fielmente a metodologia dos cientistas."
+            }
+        ];
+
+        let player = null;
+        let pollingInterval = null;
+        let score = 1000;
+        let currentQuestionIndex = 0;
+        let isQuizActive = false;
+        let selectedOptionIdx = null;
+        let currentCheckpointAnswered = [false, false, false, false];
+        let maxUnlockedTime = 0;
+        let lastUserTime = 0;
+
+        window.onload = function() {
+            initGame();
+        };
+
+        function initGame() {
+            updateUI();
+            toggleHelpModal(true); 
+            
+            window.onYouTubeIframeAPIReady = function() {
+                initYouTubePlayer();
+            };
+
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+            setTimeout(() => {
+                if (!player || typeof player.getPlayerState !== 'function') {
+                    // Ocultámos a mensagem de ecrã inteiro.
+                    // Agora, o erro nativo do YouTube aparecerá no próprio iframe, o que é muito mais fiável.
+                    console.warn("Aviso: A API do YouTube demorou a responder. A verificar comunicação...");
+                }
+            }, 4000);
+        }
+
+        function initYouTubePlayer() {
+            const container = document.getElementById('yt-player-container');
+            container.innerHTML = '<div id="yt-player" class="absolute inset-0 w-full h-full"></div>';
+
+            // Para o GitHub Pages, a origem será o teu domínio real e seguro (ex: https://teu-usuario.github.io)
+            // Se por acaso abrir localmente, assume localhost para evitar undefined
+            const realOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'https://localhost';
+
+            player = new YT.Player('yt-player', {
+                videoId: 'qynHlQkj93Y',
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 1,
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'disablekb': 1,
+                    'enablejsapi': 1,
+                    'playsinline': 1,
+                    'origin': realOrigin,
+                    'widget_referrer': realOrigin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            console.log("YouTube Player integrado com sucesso sob regras de sandbox.");
+            startPollingLoop();
+        }
+
+        function onPlayerError(event) {
+            const errorCode = event.data;
+            const container = document.getElementById('yt-player-container');
+            
+            let errorTitle = "Erro de Reprodução do YouTube";
+            let errorMessage = `Ocorreu um erro desconhecido (Código: ${errorCode}).`;
+
+            if (errorCode === 101 || errorCode === 150 || errorCode === 153) {
+                errorTitle = "Incorporação Bloqueada ou Inválida";
+                errorMessage = "O canal bloqueou a reprodução externa ou o ambiente restringe cabeçalhos de origem. O código do jogo está a funcionar. Para testar a funcionalidade total, tente alterar o 'videoId' no código para outro vídeo público.";
+            } else if (errorCode === 2) {
+                errorMessage = "O ID do vídeo fornecido é inválido.";
+            }
+
+            container.innerHTML = `
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 bg-slate-900/95 p-6 text-center gap-3 z-50">
+                    <i class="fa-solid fa-ban text-4xl text-rose-500 animate-pulse"></i>
+                    <h3 class="font-bold text-lg text-white title-font">${errorTitle}</h3>
+                    <p class="text-xs text-slate-400 max-w-md leading-relaxed">${errorMessage}</p>
+                </div>
+            `;
+            console.error("YouTube API Error:", errorCode);
+        }
+
+        function startPollingLoop() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(() => {
+                if (!player || typeof player.getCurrentTime !== 'function') return;
+                
+                try {
+                    const currentTime = player.getCurrentTime();
+                    const duration = player.getDuration() || 868;
+                    
+                    const percentage = Math.min((currentTime / duration) * 100, 100).toFixed(1);
+                    document.getElementById('timeline-percentage').innerText = `${percentage}% Concluído`;
+                    
+                    if (currentTime > maxUnlockedTime + 3) {
+                        const nextUnansweredIdx = questions.findIndex((q, idx) => !currentCheckpointAnswered[idx]);
+                        if (nextUnansweredIdx !== -1) {
+                            const nextUnansweredTimestamp = questions[nextUnansweredIdx].timestamp;
+                            if (currentTime > nextUnansweredTimestamp) {
+                                player.seekTo(lastUserTime, true);
+                                showCustomAlert("Não podes avançar no vídeo antes de responderes ao desafio científico pendente!");
+                                return;
+                            }
+                        }
+                    }
+                    
+                    if (currentTime <= maxUnlockedTime + 5) {
+                        lastUserTime = currentTime;
+                    }
+                    if (currentTime > maxUnlockedTime) {
+                        maxUnlockedTime = currentTime;
+                        document.getElementById('unlocked-progress-bar').style.width = `${(maxUnlockedTime / duration) * 100}%`;
+                    }
+
+                    for (let i = 0; i < questions.length; i++) {
+                        const q = questions[i];
+                        if (currentTime >= q.timestamp && !currentCheckpointAnswered[i]) {
+                            triggerQuiz(i);
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Erro temporário de sincronização com o frame do YouTube.");
+                }
+            }, 250);
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING && isQuizActive) {
+                player.pauseVideo();
+                showCustomAlert("Responda ao desafio ativo para poder retomar o vídeo.");
+            }
+        }
+
+        function triggerQuiz(index) {
+            isQuizActive = true;
+            currentQuestionIndex = index;
+            
+            if (player && typeof player.pauseVideo === 'function') {
+                player.pauseVideo();
+            }
+            
+            playErrorSound();
+            
+            document.getElementById('video-overlay').classList.remove('hidden');
+            document.getElementById('quiz-empty-state').classList.add('hidden');
+            document.getElementById('game-finished-panel').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            
+            const q = questions[index];
+            document.getElementById('question-badge').innerText = `Desafio ${index + 1} de 4`;
+            document.getElementById('question-timestamp').innerText = q.timestampLabel;
+            document.getElementById('question-text').innerText = q.questionText;
+            
+            const optionsGroup = document.getElementById('options-group');
+            optionsGroup.innerHTML = '';
+            
+            selectedOptionIdx = null;
+            document.getElementById('btn-submit-answer').disabled = true;
+            document.getElementById('btn-submit-answer').classList.remove('hidden');
+            document.getElementById('btn-continue-video').classList.add('hidden');
+            
+            const feedbackPanel = document.getElementById('feedback-panel');
+            feedbackPanel.classList.add('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = "w-full p-3 text-left rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-800/50 hover:border-slate-700 text-xs text-slate-300 transition-all flex items-start gap-2.5 group";
+                btn.onclick = () => selectOption(idx, btn);
+                btn.innerHTML = `
+                    <span class="h-5 w-5 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-400 flex items-center justify-center shrink-0 group-hover:border-indigo-500 group-hover:text-indigo-400 transition-all">
+                        ${String.fromCharCode(65 + idx)}
+                    </span>
+                    <span class="leading-relaxed">${opt}</span>
+                `;
+                optionsGroup.appendChild(btn);
+            });
+            
+            focusQuiz();
+        }
+
+        function selectOption(idx, btnElement) {
+            if (currentCheckpointAnswered[currentQuestionIndex]) return;
+
+            selectedOptionIdx = idx;
+            document.getElementById('btn-submit-answer').disabled = false;
+            
+            const buttons = document.getElementById('options-group').children;
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('border-indigo-600', 'bg-indigo-600/10', 'text-white');
+                buttons[i].classList.add('border-slate-800', 'bg-slate-950/40', 'text-slate-300');
+                
+                const span = buttons[i].querySelector('span');
+                if (span) {
+                    span.classList.remove('bg-indigo-600', 'border-indigo-500', 'text-white');
+                    span.classList.add('bg-slate-800', 'border-slate-700', 'text-slate-400');
+                }
+            }
+
+            btnElement.classList.remove('border-slate-800', 'bg-slate-950/40', 'text-slate-300');
+            btnElement.classList.add('border-indigo-600', 'bg-indigo-600/10', 'text-white');
+            
+            const badge = btnElement.querySelector('span');
+            if (badge) {
+                badge.classList.remove('bg-slate-800', 'border-slate-700', 'text-slate-400');
+                badge.classList.add('bg-indigo-600', 'border-indigo-500', 'text-white');
+            }
+        }
+
+        function checkSelectedAnswer() {
+            if (selectedOptionIdx === null) return;
+            
+            const q = questions[currentQuestionIndex];
+            const feedbackPanel = document.getElementById('feedback-panel');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+            
+            feedbackPanel.classList.remove('hidden');
+            
+            if (selectedOptionIdx === q.correctIndex) {
+                playSuccessSound();
+                currentCheckpointAnswered[currentQuestionIndex] = true;
+                
+                const checkpointBadge = document.getElementById(`checkpoint-${currentQuestionIndex}`);
+                if (checkpointBadge) {
+                    checkpointBadge.classList.remove('bg-slate-800', 'border-slate-700');
+                    checkpointBadge.classList.add('bg-emerald-600', 'border-emerald-400', 'text-white');
+                    checkpointBadge.innerHTML = `<i class="fa-solid fa-check text-[9px] text-white"></i>`;
+                }
+
+                feedbackPanel.className = "rounded-xl p-3 border border-emerald-500/30 bg-emerald-500/10 text-xs leading-relaxed transition-all duration-300 text-emerald-300";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i>`;
+                feedbackTitle.innerText = "Excelente Investigação! Resposta Correta.";
+                feedbackText.innerText = q.explanation;
+                
+                document.getElementById('btn-submit-answer').classList.add('hidden');
+                document.getElementById('btn-continue-video').classList.remove('hidden');
+
+                addInsightToJournal(q.insight);
+                
+                maxUnlockedTime = q.timestamp + 1;
+                lastUserTime = q.timestamp + 1;
+
+            } else {
+                playErrorSound();
+                
+                score = Math.max(score - 100, 100);
+                document.getElementById('score-counter').innerText = score;
+
+                feedbackPanel.className = "rounded-xl p-3 border border-rose-500/30 bg-rose-500/10 text-xs leading-relaxed transition-all duration-300 text-rose-300";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-base"></i>`;
+                feedbackTitle.innerText = "Hipótese Refutada! Repense a sua resposta.";
+                feedbackText.innerText = "Reanalise os argumentos dos investigadores no vídeo. A ciência constrói-se testando outras alternativas que façam mais sentido lógico.";
+            }
+        }
+
+        function resumeVideoAfterQuiz() {
+            document.getElementById('video-overlay').classList.add('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-empty-state').classList.remove('hidden');
+            
+            isQuizActive = false;
+            
+            if (player && typeof player.playVideo === 'function') {
+                player.playVideo();
+            }
+
+            const correctCount = currentCheckpointAnswered.filter(Boolean).length;
+            document.getElementById('badge-counter').innerText = `${correctCount}/4`;
+
+            if (correctCount === 4) {
+                triggerVictory();
+            }
+        }
+
+        function triggerVictory() {
+            playVictorySound();
+            document.getElementById('quiz-empty-state').classList.add('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('game-finished-panel').classList.remove('hidden');
+            
+            score += 500;
+            document.getElementById('score-counter').innerText = score;
+        }
+
+        function addInsightToJournal(text) {
+            const journalList = document.getElementById('journal-list');
+            const journalEmpty = document.getElementById('journal-empty');
+            
+            if (journalEmpty) journalEmpty.remove();
+
+            const div = document.createElement('div');
+            div.className = "p-2.5 bg-slate-900 border border-slate-800 rounded-lg flex items-start gap-2 animate-fadeIn";
+            div.innerHTML = `
+                <div class="h-5 w-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+                <p class="text-slate-300 leading-normal text-[11px]">${text}</p>
+            `;
+            journalList.appendChild(div);
+
+            const currentCount = currentCheckpointAnswered.filter(Boolean).length;
+            document.getElementById('journal-count').innerText = `${currentCount}/4 Insights`;
+        }
+
+        function resetGame() {
+            score = 1000;
+            currentQuestionIndex = 0;
+            isQuizActive = false;
+            selectedOptionIdx = null;
+            currentCheckpointAnswered = [false, false, false, false];
+            maxUnlockedTime = 0;
+            lastUserTime = 0;
+
+            document.getElementById('score-counter').innerText = score;
+            document.getElementById('badge-counter').innerText = "0/4";
+            document.getElementById('journal-count').innerText = "0/4 Insights";
+
+            const journalList = document.getElementById('journal-list');
+            journalList.innerHTML = `<div id="journal-empty" class="text-center py-6 text-slate-500 italic">As tuas conclusões científicas aparecerão aqui à medida que responderes corretamente.</div>`;
+
+            for (let i = 0; i < 4; i++) {
+                const badge = document.getElementById(`checkpoint-${i}`);
+                if (badge) {
+                    badge.className = "absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md";
+                    badge.innerHTML = `<span class="text-[9px] font-bold text-slate-400">${i + 1}</span>`;
+                }
+            }
+
+            document.getElementById('unlocked-progress-bar').style.width = "0%";
+            document.getElementById('game-finished-panel').classList.add('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-empty-state').classList.remove('hidden');
+            document.getElementById('video-overlay').classList.add('hidden');
+
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(0, true);
+                player.playVideo();
+            }
+        }
+
+        function focusQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function toggleHelpModal(forceShow) {
+            const modal = document.getElementById('help-modal');
+            if (forceShow === true) {
+                modal.classList.remove('hidden');
+            } else if (forceShow === false) {
+                modal.classList.add('hidden');
+            } else {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        let alertTimeout = null;
+        function showCustomAlert(message) {
+            const alertBox = document.getElementById('custom-alert');
+            document.getElementById('alert-message').innerText = message;
+            
+            alertBox.classList.remove('opacity-0', '-translate-y-20');
+            alertBox.classList.add('opacity-100', 'translate-y-0');
+            
+            if (alertTimeout) clearTimeout(alertTimeout);
+            alertTimeout = setTimeout(() => {
+                hideAlert();
+            }, 5000);
+        }
+
+        function hideAlert() {
+            const alertBox = document.getElementById('custom-alert');
+            alertBox.classList.remove('opacity-100', 'translate-y-0');
+            alertBox.classList.add('opacity-0', '-translate-y-20');
+        }
+
+        function updateUI() {
+            document.getElementById('score-counter').innerText = score;
+        }
+    </script>
+</body>
+</html>
