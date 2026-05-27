@@ -74,7 +74,16 @@
                     <div id="yt-player-container" class="absolute inset-0 w-full h-full bg-slate-900 flex items-center justify-center">
                         <div id="yt-player"></div>
                     </div>
-                    
+
+                    <!-- Bloqueador de interações nativas do YouTube -->
+                    <div id="video-interaction-blocker" class="absolute inset-0 z-10 flex flex-col items-center justify-end pb-5">
+                        <!-- Botão Play/Pause personalizado (único controle permitido) -->
+                        <button id="custom-play-btn" onclick="togglePlayPause()" title="Play / Pause"
+                            class="h-14 w-14 rounded-full bg-indigo-700/90 hover:bg-indigo-500 backdrop-blur-sm border border-indigo-400/40 flex items-center justify-center text-white shadow-xl shadow-indigo-900/50 transition-all duration-200 hover:scale-110 active:scale-95">
+                            <i id="custom-play-icon" class="fa-solid fa-play text-xl ml-1"></i>
+                        </button>
+                    </div>
+
                     <div id="video-overlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 hidden z-30 transition-all duration-300">
                         <div class="text-center max-w-md space-y-4">
                             <div class="h-16 w-16 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto text-amber-400 mb-2">
@@ -486,12 +495,14 @@
                 videoId: 'qynHlQkj93Y',
                 playerVars: {
                     'autoplay': 0,
-                    'controls': 1,
+                    'controls': 0,
                     'modestbranding': 1,
                     'rel': 0,
                     'disablekb': 1,
                     'enablejsapi': 1,
                     'playsinline': 1,
+                    'fs': 0,
+                    'iv_load_policy': 3,
                     'origin': realOrigin,
                     'widget_referrer': realOrigin
                 },
@@ -578,9 +589,33 @@
         }
 
         function onPlayerStateChange(event) {
+            // Sincroniza o ícone do botão personalizado com o estado real do player
+            const icon = document.getElementById('custom-play-icon');
+            if (icon) {
+                if (event.data === YT.PlayerState.PLAYING) {
+                    icon.className = 'fa-solid fa-pause text-xl';
+                } else {
+                    icon.className = 'fa-solid fa-play text-xl ml-1';
+                }
+            }
+
             if (event.data === YT.PlayerState.PLAYING && isQuizActive) {
                 player.pauseVideo();
                 showCustomAlert("Responda ao desafio ativo para poder retomar o vídeo.");
+            }
+        }
+
+        function togglePlayPause() {
+            if (!player || typeof player.getPlayerState !== 'function') return;
+            if (isQuizActive) {
+                showCustomAlert("Responda ao desafio ativo antes de retomar o vídeo!");
+                return;
+            }
+            const state = player.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
             }
         }
 
@@ -791,6 +826,9 @@
                 player.seekTo(0, true);
                 player.playVideo();
             }
+
+            const icon = document.getElementById('custom-play-icon');
+            if (icon) icon.className = 'fa-solid fa-pause text-xl';
         }
 
         function focusQuiz() {
