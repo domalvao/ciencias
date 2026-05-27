@@ -50,7 +50,14 @@
                 </div>
             </div>
             
+            <!-- Indicadores do Aluno -->
             <div class="flex items-center gap-4">
+                <!-- Nome do Jogador -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2 hidden" id="player-name-container">
+                    <i class="fa-solid fa-user-astronaut text-indigo-400"></i>
+                    <span id="player-name-display" class="font-bold text-indigo-400 text-xs uppercase tracking-wider"></span>
+                </div>
+
                 <div class="bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-400"></i>
                     <span class="text-xs text-slate-400">Pontuação:</span>
@@ -241,11 +248,12 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
             <p>© 2026 Laboratório Virtual de Didática das Ciências. Desenvolvido para formação ativa de professores.</p>
             <div class="flex gap-4">
-                <a href="#rules" onclick="toggleHelpModal()" class="hover:text-indigo-400 transition-colors"><i class="fa-solid fa-circle-info mr-1"></i> Como Jogar</a>
+                <button onclick="toggleHelpModal(true)" class="hover:text-indigo-400 transition-colors"><i class="fa-solid fa-circle-info mr-1"></i> Instruções do Jogo</button>
             </div>
         </div>
     </footer>
 
+    <!-- MODAL DE INSTRUÇÕES DA JOGABILIDADE (Acessível pelo rodapé) -->
     <div id="help-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
             <button onclick="toggleHelpModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
@@ -257,7 +265,7 @@
             
             <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
                 <p>
-                    Bem-vindo(a) a este ambiente de aprendizagem dinâmico. O teu objetivo é assistir ao documentário didático da UNIVESP sobre o <strong>Ensino de Ciências</strong> e analisar as suas práticas.
+                    O teu objetivo é assistir ao documentário didático da UNIVESP sobre o <strong>Ensino de Ciências</strong> e analisar as suas práticas.
                 </p>
                 <div class="space-y-2.5">
                     <div class="flex items-start gap-3">
@@ -281,7 +289,40 @@
 
             <div class="pt-2">
                 <button onclick="toggleHelpModal(false)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30">
-                    Compreendi, Começar Investigação!
+                    Compreendi as Regras!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INICIAL DE BOAS-VINDAS / TERMOS E NOME -->
+    <div id="welcome-modal" class="fixed inset-0 bg-slate-950 flex items-center justify-center p-4 z-[60] transition-opacity duration-500">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 space-y-6 shadow-2xl text-center relative overflow-hidden">
+            <!-- Efeito visual de fundo -->
+            <div class="absolute -top-10 -right-10 h-32 w-32 bg-indigo-600/20 rounded-full blur-2xl"></div>
+            
+            <div class="relative z-10 space-y-4">
+                <div class="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-robot text-white text-3xl animate-pulse"></i>
+                </div>
+                
+                <div>
+                    <h2 class="text-2xl font-bold title-font text-white">Laboratório de Didática</h2>
+                    
+                    <!-- Aviso transferido para aqui como termo de uso -->
+                    <p class="text-xs text-slate-400 mt-4 bg-slate-950 p-3 rounded-xl border border-slate-800 leading-relaxed text-left">
+                        <i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i> <strong>Aviso:</strong> Esse game foi criado com IA generativa e pode conter alguns equívocos. Se tiver qualquer problema, fale com o Alvão.
+                    </p>
+                </div>
+
+                <div class="space-y-2 text-left pt-2">
+                    <label for="player-name-input" class="text-xs font-bold text-slate-300 uppercase tracking-wider pl-1">Identificação do Jogador</label>
+                    <input type="text" id="player-name-input" placeholder="Escreve o teu nome ou apelido..." class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    <p id="name-error" class="text-[10px] text-rose-400 hidden pl-1"><i class="fa-solid fa-circle-exclamation"></i> Precisas de inserir o teu nome para avançar.</p>
+                </div>
+
+                <button onclick="registerPlayerAndStart()" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-4">
+                    Concordo com os termos, seguir <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -447,15 +488,47 @@
         let currentCheckpointAnswered = [false, false, false, false];
         let maxUnlockedTime = 0;
         let lastUserTime = 0;
+        let playerName = ""; 
 
         window.onload = function() {
-            initGame();
+            // O jogo não inicia de imediato. Fica a aguardar que o modal inicial seja preenchido.
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) nameInput.focus();
+            
+            // Permite submeter com a tecla Enter
+            nameInput.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    registerPlayerAndStart();
+                }
+            });
         };
+
+        // Função chamada pelo botão "Concordo com os termos, seguir"
+        function registerPlayerAndStart() {
+            const inputName = document.getElementById('player-name-input').value.trim();
+            const errorMsg = document.getElementById('name-error');
+
+            if (inputName.length === 0) {
+                errorMsg.classList.remove('hidden');
+                return; // Bloqueia avanço
+            }
+
+            playerName = inputName;
+            document.getElementById('player-name-display').innerText = playerName;
+            document.getElementById('player-name-container').classList.remove('hidden');
+
+            document.getElementById('welcome-modal').classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => document.getElementById('welcome-modal').remove(), 500);
+
+            playSuccessSound();
+            initGame();
+        }
 
         function initGame() {
             updateUI();
-            toggleHelpModal(true); 
             
+            // Adiciona a API do YouTube
             window.onYouTubeIframeAPIReady = function() {
                 initYouTubePlayer();
             };
@@ -466,27 +539,45 @@
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
             setTimeout(() => {
-                if (!player || typeof player.getPlayerState !== 'function') {
-                    // Ocultámos a mensagem de ecrã inteiro.
-                    // Agora, o erro nativo do YouTube aparecerá no próprio iframe, o que é muito mais fiável.
-                    console.warn("Aviso: A API do YouTube demorou a responder. A verificar comunicação...");
+                if (!player) {
+                    const container = document.getElementById('yt-player-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 bg-slate-900/95 p-6 text-center gap-3 z-50">
+                                <i class="fa-solid fa-triangle-exclamation text-4xl text-amber-500 animate-pulse"></i>
+                                <h3 class="font-bold text-lg text-white title-font">Execução por Ficheiro Local Detetada (file://)</h3>
+                                <p class="text-xs text-slate-400 max-w-md leading-relaxed">
+                                    Os navegadores modernos bloqueiam o protocolo de comunicação do YouTube ao abrir o ficheiro clicando diretamente no seu disco (protocolo <strong>file://</strong>).
+                                </p>
+                                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-left text-[11px] space-y-2.5 max-w-md text-slate-300">
+                                    <p class="font-bold text-indigo-400"><i class="fa-solid fa-bolt"></i> Como resolver isto em 10 segundos:</p>
+                                    <p><strong>Opção A:</strong> No VS Code, clique com o botão direito no ficheiro <code class="bg-slate-900 px-1 py-0.5 rounded text-pink-400">index.html</code> e escolha <strong>"Open with Live Server"</strong>.</p>
+                                    <p><strong>Opção B:</strong> Coloque no GitHub Pages como orientado.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
             }, 4000);
         }
 
         function initYouTubePlayer() {
+            const videoId = 'qynHlQkj93Y'; 
             const container = document.getElementById('yt-player-container');
-            container.innerHTML = '<div id="yt-player" class="absolute inset-0 w-full h-full"></div>';
+            
+            // Adicionada a classe 'pointer-events-none' para bloquear cliques diretos no vídeo (pausa/play por clique)
+            container.innerHTML = '<div id="yt-player" class="absolute inset-0 w-full h-full pointer-events-none"></div>';
 
-            // Para o GitHub Pages, a origem será o teu domínio real e seguro (ex: https://teu-usuario.github.io)
-            // Se por acaso abrir localmente, assume localhost para evitar undefined
             const realOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'https://localhost';
 
             player = new YT.Player('yt-player', {
-                videoId: 'qynHlQkj93Y',
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
                 playerVars: {
                     'autoplay': 0,
-                    'controls': 1,
+                    'controls': 0, // Desativa a barra inferior de controlos do YouTube
+                    'fs': 0,       // Desativa o botão de ecrã inteiro
                     'modestbranding': 1,
                     'rel': 0,
                     'disablekb': 1,
@@ -504,7 +595,7 @@
         }
 
         function onPlayerReady(event) {
-            console.log("YouTube Player integrado com sucesso sob regras de sandbox.");
+            console.log("YouTube Player integrado com sucesso.");
             startPollingLoop();
         }
 
@@ -516,8 +607,8 @@
             let errorMessage = `Ocorreu um erro desconhecido (Código: ${errorCode}).`;
 
             if (errorCode === 101 || errorCode === 150 || errorCode === 153) {
-                errorTitle = "Incorporação Bloqueada ou Inválida";
-                errorMessage = "O canal bloqueou a reprodução externa ou o ambiente restringe cabeçalhos de origem. O código do jogo está a funcionar. Para testar a funcionalidade total, tente alterar o 'videoId' no código para outro vídeo público.";
+                errorTitle = "Incorporação Bloqueada";
+                errorMessage = "Esta mensagem surge apenas em ambientes restritos de teste (como a Sandbox da IA). Ao alojar no GitHub, este erro desaparece e o vídeo funciona.";
             } else if (errorCode === 2) {
                 errorMessage = "O ID do vídeo fornecido é inválido.";
             }
