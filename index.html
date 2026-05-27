@@ -121,26 +121,12 @@
                     <div class="absolute h-1.5 w-full bg-slate-800 rounded-full top-1/2 transform -translate-y-1/2"></div>
                     <div id="unlocked-progress-bar" class="absolute h-1.5 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full top-1/2 transform -translate-y-1/2 transition-all duration-300" style="width: 0%"></div>
                     
-                    <div id="checkpoint-0" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 12.1%" title="Desafio 1: Observação do Sol">
-                        <span class="text-[9px] font-bold text-slate-400">1</span>
-                    </div>
-                    <div id="checkpoint-1" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 42.6%" title="Desafio 2: Quotidiano e Prática">
-                        <span class="text-[9px] font-bold text-slate-400">2</span>
-                    </div>
-                    <div id="checkpoint-2" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 51.8%" title="Desafio 3: Tipos de Aulas Práticas">
-                        <span class="text-[9px] font-bold text-slate-400">3</span>
-                    </div>
-                    <div id="checkpoint-3" class="absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md" style="left: 79.5%" title="Desafio 4: Classificação de Animais">
-                        <span class="text-[9px] font-bold text-slate-400">4</span>
-                    </div>
+                    <!-- Checkpoints gerados dinamicamente pelo JS -->
+                    <div id="checkpoints-container" class="absolute inset-0 pointer-events-none"></div>
                 </div>
 
-                <div class="grid grid-cols-4 text-[10px] sm:text-xs text-slate-500 font-medium">
-                    <div class="text-left">01:45 <br><span class="text-slate-400">Desafio 1</span></div>
-                    <div class="text-center">06:10 <br><span class="text-slate-400">Desafio 2</span></div>
-                    <div class="text-center">07:30 <br><span class="text-slate-400">Desafio 3</span></div>
-                    <div class="text-right">11:30 <br><span class="text-slate-400">Desafio 4</span></div>
-                </div>
+                <!-- Labels gerados dinamicamente pelo JS -->
+                <div id="timeline-labels" class="grid grid-cols-4 text-[10px] sm:text-xs text-slate-500 font-medium"></div>
             </div>
         </section>
 
@@ -384,9 +370,25 @@
     </script>
 
     <script>
-        const questions = [
+        // ─── BANCO COMPLETO DE PERGUNTAS (10 questões) ───────────────────────────
+        const questionPool = [
             {
                 id: 0,
+                timestamp: 45,
+                timestampLabel: "00:45",
+                questionText: "Segundo a abordagem apresentada logo no início do vídeo, qual é a premissa central do ensino de ciências nas séries iniciais?",
+                options: [
+                    "Garantir que os alunos memorizem todos os nomes científicos e taxonomias básicas desde cedo.",
+                    "Fazer com que as crianças reproduzam experimentos de laboratório adulto com exatidão e precisão.",
+                    "Partir da curiosidade natural da criança, articulando a observação do mundo com o pensamento cada vez mais sistemático.",
+                    "Cumprir o currículo oficial sem desvios para não comprometer o calendário escolar."
+                ],
+                correctIndex: 2,
+                explanation: "O vídeo parte da premissa de que a criança já é naturalmente curiosa e o papel do ensino de ciências é capitalizar essa curiosidade com método e rigor crescentes, sem impor modelos prontos.",
+                insight: "Premissa Central (00:45): O ensino de ciências eficaz parte da curiosidade inata da criança, transformando-a em investigação estruturada e progressivamente mais rigorosa."
+            },
+            {
+                id: 1,
                 timestamp: 105,
                 timestampLabel: "01:45",
                 questionText: "No projeto de observação do Sol e das sombras com as crianças do 2º ano (prof.ª Débora), qual o intuito científico de desenhar as sombras em relação a um poste duas vezes por semana no mesmo horário?",
@@ -401,7 +403,37 @@
                 insight: "Observação Solar (01:45): O desenho repetido com referenciais fixos ajuda as crianças a compreenderem a relatividade e constroem intuição temporal histórica (calendários)."
             },
             {
-                id: 1,
+                id: 2,
+                timestamp: 165,
+                timestampLabel: "02:45",
+                questionText: "No contexto do projeto de observação de sombras, qual é a relevância pedagógica de registar graficamente as observações ao longo do tempo?",
+                options: [
+                    "Servir apenas como avaliação formal do desenho artístico dos alunos.",
+                    "Permitir que os alunos comparem registos de momentos distintos, identificando padrões e construindo evidências visuais para as suas hipóteses.",
+                    "Substituir a necessidade de linguagem verbal nas aulas de ciências.",
+                    "Decorar as paredes da sala com produções coloridas e motivadoras."
+                ],
+                correctIndex: 1,
+                explanation: "O registo sistemático é ferramenta científica fundamental: permite comparar dados recolhidos em momentos distintos, tornando a variação percetível e fundamentando hipóteses com evidências concretas.",
+                insight: "Registo Científico (02:45): Documentar observações ao longo do tempo transforma dados dispersos em evidência comparável — habilidade nuclear da metodologia científica."
+            },
+            {
+                id: 3,
+                timestamp: 300,
+                timestampLabel: "05:00",
+                questionText: "Qual deve ser o papel do professor durante uma atividade de investigação científica com crianças pequenas?",
+                options: [
+                    "Dar todas as respostas antecipadamente para evitar que os alunos percam tempo com erros.",
+                    "Observar em silêncio total sem qualquer intervenção, para preservar a autonomia absoluta.",
+                    "Atuar como mediador: lançar perguntas provocadoras, organizar o ambiente e fomentar a partilha de descobertas entre pares.",
+                    "Limitar a atividade a etapas rígidas de um manual para garantir resultados previsíveis."
+                ],
+                correctIndex: 2,
+                explanation: "O professor mediador não dá respostas — lança questões que expandem o pensamento. Organiza condições para que a investigação aconteça e cria momentos de partilha que enriquecem a aprendizagem coletiva.",
+                insight: "Papel do Professor (05:00): A mediação pedagógica eficaz não elimina o erro nem fornece respostas — provoca, organiza e facilita a construção coletiva do conhecimento."
+            },
+            {
+                id: 4,
                 timestamp: 370,
                 timestampLabel: "06:10",
                 questionText: "Segundo as reflexões do vídeo e a fala da Prof.ª Miriam Krasilchik, o que é um aspeto essencial para que o ensino de ciências nas séries iniciais seja de facto eficiente?",
@@ -416,7 +448,7 @@
                 insight: "Quotidiano e Prática (06:10): A ciência eficiente precisa de provocação contínua, vínculo à realidade do aluno e espaço para lidar com o erro e o imprevisto experimental."
             },
             {
-                id: 2,
+                id: 5,
                 timestamp: 450,
                 timestampLabel: "07:30",
                 questionText: "O vídeo classifica as atividades práticas em três categorias: Exercícios, Investigações e Projetos. Como é definida a categoria de 'Investigações'?",
@@ -431,7 +463,37 @@
                 insight: "Métodos Práticos (07:30): Diferente dos meros exercícios de receita, a Investigação propõe problemas de caminhos abertos que exigem do estudante a tomada ativa de decisões."
             },
             {
-                id: 3,
+                id: 6,
+                timestamp: 520,
+                timestampLabel: "08:40",
+                questionText: "Em que aspeto os 'Projetos' se distinguem fundamentalmente das 'Investigações' como tipo de atividade prática de ciências?",
+                options: [
+                    "Os projetos são sempre individuais, enquanto as investigações são necessariamente em grupo.",
+                    "Os projetos têm maior amplitude temporal e interdisciplinar, partindo de um tema amplo que integra múltiplos problemas e etapas ao longo do tempo.",
+                    "As investigações são mais complexas e demoradas; os projetos são atividades rápidas de uma única aula.",
+                    "Projetos excluem o uso de materiais manipuláveis, sendo apenas teóricos e expositivos."
+                ],
+                correctIndex: 1,
+                explanation: "O projeto é uma estrutura de maior fôlego: parte de um tema gerador amplo, envolve múltiplas etapas ao longo de semanas ou meses, e tende a cruzar diferentes áreas do conhecimento de forma integrada.",
+                insight: "Projetos vs Investigações (08:40): Projetos são estruturas de maior escala temporal e interdisciplinar, integrando múltiplas investigações em torno de um tema gerador comum."
+            },
+            {
+                id: 7,
+                timestamp: 615,
+                timestampLabel: "10:15",
+                questionText: "De que forma o erro é conceptualizado no ensino de ciências pela abordagem apresentada no vídeo?",
+                options: [
+                    "Como falha que deve ser evitada a todo custo, sendo o professor responsável por prevenir resultados inesperados.",
+                    "Como parte integrante e produtiva do processo científico, pois forçar a revisão de hipóteses é o mecanismo central da construção do conhecimento.",
+                    "Como indicador de que a atividade foi mal planeada e deve ser cancelada imediatamente.",
+                    "Como motivo de constrangimento para o aluno, que deve ser corrigido publicamente para não se repetir."
+                ],
+                correctIndex: 1,
+                explanation: "Na ciência, o erro não é fracasso — é dado. Quando uma hipótese não se confirma, o investigador ganha informação valiosa que o obriga a repensar o modelo. Esta atitude perante o inesperado é exatamente o que se pretende cultivar nos alunos.",
+                insight: "O Valor do Erro (10:15): Na investigação científica, o resultado inesperado não é fracasso, mas dado novo — obriga à revisão de hipóteses e aprofunda a compreensão do fenómeno."
+            },
+            {
+                id: 8,
                 timestamp: 690,
                 timestampLabel: "11:30",
                 questionText: "No jogo de cartões de animais promovido pela prof.ª Maria Helena com crianças de 5 anos em Paulínia, o que caracteriza a atitude científica dos pequenos?",
@@ -444,8 +506,27 @@
                 correctIndex: 1,
                 explanation: "Fantástico! O que os aproxima da atitude científica é a necessidade de observar, propor critérios próprios de classificação (como agrupamentos) e, fundamentalmente, justificar as suas teorias aos pares.",
                 insight: "A Classificação Científica (11:30): Agrupar elementos por critérios inventados e defendê-los racionalmente perante os pares reproduz fielmente a metodologia dos cientistas."
+            },
+            {
+                id: 9,
+                timestamp: 760,
+                timestampLabel: "12:40",
+                questionText: "Porque é que a discussão e argumentação entre pares é considerada essencial nas atividades científicas apresentadas no vídeo?",
+                options: [
+                    "Para que os alunos mais fortes corrijam diretamente os alunos mais fracos de forma hierárquica.",
+                    "Para preencher o tempo que sobra depois de terminar a atividade prática principal.",
+                    "Porque confrontar ideias, defender critérios e ouvir perspetivas alternativas desenvolve o raciocínio lógico e a linguagem científica.",
+                    "Para evitar que o professor precise de corrigir trabalhos individualmente fora do horário letivo."
+                ],
+                correctIndex: 2,
+                explanation: "A troca argumentativa entre pares é um microcosmo do debate científico real: obriga cada aluno a estruturar o seu raciocínio, antecipar contra-argumentos e refinar conclusões com base na evidência partilhada.",
+                insight: "Argumentação entre Pares (12:40): Defender ideias e contestar as dos colegas com base em evidências treina o raciocínio científico e desenvolve linguagem especializada de forma contextualizada."
             }
         ];
+
+        // ─── SELEÇÃO ALEATÓRIA DE 4 QUESTÕES POR SESSÃO ──────────────────────────
+        const MAX_CHECKPOINTS = 4;
+        let activeQuestions = [];
 
         let player = null;
         let pollingInterval = null;
@@ -457,11 +538,49 @@
         let maxUnlockedTime = 0;
         let lastUserTime = 0;
 
+        function selectActiveQuestions() {
+            // Embaralha o pool e seleciona MAX_CHECKPOINTS questões aleatórias
+            const shuffled = [...questionPool].sort(() => Math.random() - 0.5);
+            activeQuestions = shuffled.slice(0, MAX_CHECKPOINTS);
+            // Ordena cronologicamente para respeitar o fluxo do vídeo
+            activeQuestions.sort((a, b) => a.timestamp - b.timestamp);
+        }
+
+        function renderTimeline() {
+            const duration = 868; // duração do vídeo em segundos
+            const container = document.getElementById('checkpoints-container');
+            const labelsContainer = document.getElementById('timeline-labels');
+            container.innerHTML = '';
+            labelsContainer.innerHTML = '';
+
+            activeQuestions.forEach((q, i) => {
+                const pct = ((q.timestamp / duration) * 100).toFixed(1);
+
+                // Marcador na linha do tempo
+                const dot = document.createElement('div');
+                dot.id = `checkpoint-${i}`;
+                dot.className = "absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md pointer-events-auto";
+                dot.style.left = `${pct}%`;
+                dot.title = `Desafio ${i + 1}: ${q.timestampLabel}`;
+                dot.innerHTML = `<span class="text-[9px] font-bold text-slate-400">${i + 1}</span>`;
+                container.appendChild(dot);
+
+                // Labels abaixo da linha
+                const label = document.createElement('div');
+                const alignClass = i === 0 ? 'text-left' : i === MAX_CHECKPOINTS - 1 ? 'text-right' : 'text-center';
+                label.className = alignClass;
+                label.innerHTML = `${q.timestampLabel} <br><span class="text-slate-400">Desafio ${i + 1}</span>`;
+                labelsContainer.appendChild(label);
+            });
+        }
+
         window.onload = function() {
             initGame();
         };
 
         function initGame() {
+            selectActiveQuestions();
+            renderTimeline();
             updateUI();
             toggleHelpModal(true); 
             
@@ -556,9 +675,9 @@
                     document.getElementById('timeline-percentage').innerText = `${percentage}% Concluído`;
                     
                     if (currentTime > maxUnlockedTime + 3) {
-                        const nextUnansweredIdx = questions.findIndex((q, idx) => !currentCheckpointAnswered[idx]);
+                        const nextUnansweredIdx = activeQuestions.findIndex((q, idx) => !currentCheckpointAnswered[idx]);
                         if (nextUnansweredIdx !== -1) {
-                            const nextUnansweredTimestamp = questions[nextUnansweredIdx].timestamp;
+                            const nextUnansweredTimestamp = activeQuestions[nextUnansweredIdx].timestamp;
                             if (currentTime > nextUnansweredTimestamp) {
                                 player.seekTo(lastUserTime, true);
                                 showCustomAlert("Não podes avançar no vídeo antes de responderes ao desafio científico pendente!");
@@ -575,8 +694,8 @@
                         document.getElementById('unlocked-progress-bar').style.width = `${(maxUnlockedTime / duration) * 100}%`;
                     }
 
-                    for (let i = 0; i < questions.length; i++) {
-                        const q = questions[i];
+                    for (let i = 0; i < activeQuestions.length; i++) {
+                        const q = activeQuestions[i];
                         if (currentTime >= q.timestamp && !currentCheckpointAnswered[i]) {
                             triggerQuiz(i);
                             break;
@@ -634,7 +753,7 @@
             document.getElementById('game-finished-panel').classList.add('hidden');
             document.getElementById('quiz-container').classList.remove('hidden');
             
-            const q = questions[index];
+            const q = activeQuestions[index];
             document.getElementById('question-badge').innerText = `Desafio ${index + 1} de 4`;
             document.getElementById('question-timestamp').innerText = q.timestampLabel;
             document.getElementById('question-text').innerText = q.questionText;
@@ -698,7 +817,7 @@
         function checkSelectedAnswer() {
             if (selectedOptionIdx === null) return;
             
-            const q = questions[currentQuestionIndex];
+            const q = activeQuestions[currentQuestionIndex];
             const feedbackPanel = document.getElementById('feedback-panel');
             const feedbackIcon = document.getElementById('feedback-icon');
             const feedbackTitle = document.getElementById('feedback-title');
@@ -801,20 +920,16 @@
             maxUnlockedTime = 0;
             lastUserTime = 0;
 
+            // Nova seleção aleatória de questões para esta sessão
+            selectActiveQuestions();
+            renderTimeline();
+
             document.getElementById('score-counter').innerText = score;
             document.getElementById('badge-counter').innerText = "0/4";
             document.getElementById('journal-count').innerText = "0/4 Insights";
 
             const journalList = document.getElementById('journal-list');
             journalList.innerHTML = `<div id="journal-empty" class="text-center py-6 text-slate-500 italic">As tuas conclusões científicas aparecerão aqui à medida que responderes corretamente.</div>`;
-
-            for (let i = 0; i < 4; i++) {
-                const badge = document.getElementById(`checkpoint-${i}`);
-                if (badge) {
-                    badge.className = "absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md";
-                    badge.innerHTML = `<span class="text-[9px] font-bold text-slate-400">${i + 1}</span>`;
-                }
-            }
 
             document.getElementById('unlocked-progress-bar').style.width = "0%";
             document.getElementById('game-finished-panel').classList.add('hidden');
