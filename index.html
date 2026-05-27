@@ -121,12 +121,9 @@
                     <div class="absolute h-1.5 w-full bg-slate-800 rounded-full top-1/2 transform -translate-y-1/2"></div>
                     <div id="unlocked-progress-bar" class="absolute h-1.5 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full top-1/2 transform -translate-y-1/2 transition-all duration-300" style="width: 0%"></div>
                     
-                    <!-- Checkpoints gerados dinamicamente pelo JS -->
+                    <!-- Marcadores intencionalmente ocultos para não revelar posição das perguntas -->
                     <div id="checkpoints-container" class="absolute inset-0 pointer-events-none"></div>
                 </div>
-
-                <!-- Labels gerados dinamicamente pelo JS -->
-                <div id="timeline-labels" class="grid grid-cols-4 text-[10px] sm:text-xs text-slate-500 font-medium"></div>
             </div>
         </section>
 
@@ -188,6 +185,20 @@
                         </div>
                     </div>
 
+                    <!-- Painel: aguarda o fim do vídeo após 4 questões regulares -->
+                    <div id="watch-to-end-panel" class="text-center py-8 space-y-4 hidden">
+                        <div class="h-14 w-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+                            <i class="fa-solid fa-eye text-amber-400 text-2xl"></i>
+                        </div>
+                        <h4 class="font-bold text-white text-lg title-font">Continue Assistindo!</h4>
+                        <p class="text-xs text-slate-300 px-3 leading-relaxed">
+                            Respondeste todos os desafios regulares. Mas a tua <span class="text-amber-400 font-semibold">pontuação final</span> está guardada no fim do vídeo — apenas quem assistiu com atenção até ao final irá encontrá-la.
+                        </p>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[11px] text-amber-300 font-semibold">
+                            <i class="fa-solid fa-lock"></i> Desafio Secreto Aguarda
+                        </div>
+                    </div>
+
                     <div id="game-finished-panel" class="text-center py-6 space-y-4 hidden">
                         <div class="h-16 w-16 bg-gradient-to-tr from-amber-400 to-yellow-500 rounded-2xl flex items-center justify-center mx-auto text-slate-950 shadow-lg shadow-amber-500/20">
                             <i class="fa-solid fa-trophy text-3xl"></i>
@@ -237,7 +248,7 @@
             <p>© 2026 Laboratório Virtual de Didática das Ciências. Desenvolvido para formação ativa de professores.</p>
             <div class="flex items-center gap-4">
                 <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-indigo-400 font-mono font-semibold tracking-wide">
-                    v2.1 — Pool Aleatório · Correção de Reprodução
+                    v2.2 — Fix Polling · Sem Bolinhas · Pergunta Secreta
                 </span>
                 <a href="#rules" onclick="toggleHelpModal()" class="hover:text-indigo-400 transition-colors"><i class="fa-solid fa-circle-info mr-1"></i> Como Jogar</a>
             </div>
@@ -531,6 +542,25 @@
         const MAX_CHECKPOINTS = 4;
         let activeQuestions = [];
 
+        // ─── PERGUNTA SECRETA FINAL (não aparece no pool nem na timeline) ─────────
+        const secretQuestion = {
+            timestamp: 840,
+            timestampLabel: "14:00",
+            questionText: "🔒 Desafio Final Secreto — Síntese Didática: Considerando todo o percurso do documentário, qual é o fio condutor que une todas as práticas exemplificadas (observação solar, quotidiano, investigações e classificação)?",
+            options: [
+                "A utilização exclusiva de laboratórios equipados e materiais de alta tecnologia como condição indispensável para o ensino científico.",
+                "A memorização progressiva de conteúdos teóricos como base obrigatória para qualquer atividade prática posterior.",
+                "A valorização da criança como sujeito ativo que observa, levanta hipóteses, argumenta e constrói conhecimento com a mediação do professor.",
+                "A separação rígida entre as disciplinas escolares para garantir a especialização precoce dos alunos desde as séries iniciais."
+            ],
+            correctIndex: 2,
+            explanation: "Parabéns por chegares ao fim com atenção! Em todos os exemplos do vídeo, a criança não é recetora passiva — ela age, observa, erra, argumenta e reconstrói o saber com orientação do professor mediador. Esta é a essência do ensino de ciências ativo.",
+            insight: "🔒 Síntese Final: O ensino de ciências eficaz coloca a criança como protagonista ativa, com o professor como mediador que provoca, orienta e valoriza o processo de construção coletiva do conhecimento."
+        };
+
+        let secretAnswered = false;
+        let isSecretQuiz = false;
+
         let player = null;
         let pollingInterval = null;
         let score = 1000;
@@ -550,31 +580,10 @@
         }
 
         function renderTimeline() {
-            const duration = 868; // duração do vídeo em segundos
+            // Marcadores e rótulos intencionalmente omitidos:
+            // o aluno não sabe onde surgirão as perguntas.
             const container = document.getElementById('checkpoints-container');
-            const labelsContainer = document.getElementById('timeline-labels');
-            container.innerHTML = '';
-            labelsContainer.innerHTML = '';
-
-            activeQuestions.forEach((q, i) => {
-                const pct = ((q.timestamp / duration) * 100).toFixed(1);
-
-                // Marcador na linha do tempo
-                const dot = document.createElement('div');
-                dot.id = `checkpoint-${i}`;
-                dot.className = "absolute h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-700 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-help transition-all duration-300 shadow-md pointer-events-auto";
-                dot.style.left = `${pct}%`;
-                dot.title = `Desafio ${i + 1}: ${q.timestampLabel}`;
-                dot.innerHTML = `<span class="text-[9px] font-bold text-slate-400">${i + 1}</span>`;
-                container.appendChild(dot);
-
-                // Labels abaixo da linha
-                const label = document.createElement('div');
-                const alignClass = i === 0 ? 'text-left' : i === MAX_CHECKPOINTS - 1 ? 'text-right' : 'text-center';
-                label.className = alignClass;
-                label.innerHTML = `${q.timestampLabel} <br><span class="text-slate-400">Desafio ${i + 1}</span>`;
-                labelsContainer.appendChild(label);
-            });
+            if (container) container.innerHTML = '';
         }
 
         window.onload = function() {
@@ -697,12 +706,21 @@
                         document.getElementById('unlocked-progress-bar').style.width = `${(maxUnlockedTime / duration) * 100}%`;
                     }
 
+                    // GUARD: só dispara quiz se não há nenhum ativo
+                    if (isQuizActive) return;
+
                     for (let i = 0; i < activeQuestions.length; i++) {
                         const q = activeQuestions[i];
                         if (currentTime >= q.timestamp && !currentCheckpointAnswered[i]) {
                             triggerQuiz(i);
-                            break;
+                            return;
                         }
+                    }
+
+                    // Verifica a pergunta secreta (só após todas as 4 regulares respondidas)
+                    const allRegularDone = currentCheckpointAnswered.every(Boolean);
+                    if (allRegularDone && !secretAnswered && currentTime >= secretQuestion.timestamp) {
+                        triggerSecretQuiz();
                     }
                 } catch (e) {
                     console.warn("Erro temporário de sincronização com o frame do YouTube.");
@@ -789,8 +807,52 @@
             focusQuiz();
         }
 
+        function triggerSecretQuiz() {
+            isQuizActive = true;
+            isSecretQuiz = true;
+
+            if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+            playErrorSound();
+
+            document.getElementById('video-overlay').classList.remove('hidden');
+            document.getElementById('quiz-empty-state').classList.add('hidden');
+            document.getElementById('game-finished-panel').classList.add('hidden');
+            document.getElementById('watch-to-end-panel').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+
+            document.getElementById('question-badge').innerHTML =
+                `<span class="text-amber-400"><i class="fa-solid fa-lock mr-1"></i>Desafio Final Secreto</span>`;
+            document.getElementById('question-timestamp').innerText = secretQuestion.timestampLabel;
+            document.getElementById('question-text').innerText = secretQuestion.questionText;
+
+            const optionsGroup = document.getElementById('options-group');
+            optionsGroup.innerHTML = '';
+            selectedOptionIdx = null;
+            document.getElementById('btn-submit-answer').disabled = true;
+            document.getElementById('btn-submit-answer').classList.remove('hidden');
+            document.getElementById('btn-continue-video').classList.add('hidden');
+            document.getElementById('feedback-panel').classList.add('hidden');
+
+            secretQuestion.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = "w-full p-3 text-left rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-800/50 hover:border-amber-700/50 text-xs text-slate-300 transition-all flex items-start gap-2.5 group";
+                btn.onclick = () => selectOption(idx, btn);
+                btn.innerHTML = `
+                    <span class="h-5 w-5 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-400 flex items-center justify-center shrink-0 group-hover:border-amber-500 group-hover:text-amber-400 transition-all">
+                        ${String.fromCharCode(65 + idx)}
+                    </span>
+                    <span class="leading-relaxed">${opt}</span>
+                `;
+                optionsGroup.appendChild(btn);
+            });
+
+            focusQuiz();
+        }
+
         function selectOption(idx, btnElement) {
-            if (currentCheckpointAnswered[currentQuestionIndex]) return;
+            // Guard para quiz regular: impede nova seleção se já respondida
+            if (!isSecretQuiz && currentCheckpointAnswered[currentQuestionIndex]) return;
 
             selectedOptionIdx = idx;
             document.getElementById('btn-submit-answer').disabled = false;
@@ -819,6 +881,12 @@
 
         function checkSelectedAnswer() {
             if (selectedOptionIdx === null) return;
+
+            // Redireciona para handler da pergunta secreta se aplicável
+            if (isSecretQuiz) {
+                checkSecretAnswer();
+                return;
+            }
             
             const q = activeQuestions[currentQuestionIndex];
             const feedbackPanel = document.getElementById('feedback-panel');
@@ -865,13 +933,57 @@
             }
         }
 
+        function checkSecretAnswer() {
+            const feedbackPanel = document.getElementById('feedback-panel');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+            feedbackPanel.classList.remove('hidden');
+
+            if (selectedOptionIdx === secretQuestion.correctIndex) {
+                playSuccessSound();
+                secretAnswered = true;
+                score += 500;
+                document.getElementById('score-counter').innerText = score;
+
+                feedbackPanel.className = "rounded-xl p-3 border border-amber-500/30 bg-amber-500/10 text-xs leading-relaxed transition-all duration-300 text-amber-300";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-lock-open text-base"></i>`;
+                feedbackTitle.innerText = "🔒 Desafio Secreto Desbloqueado! +500 pontos";
+                feedbackText.innerText = secretQuestion.explanation;
+
+                document.getElementById('btn-submit-answer').classList.add('hidden');
+                document.getElementById('btn-continue-video').classList.remove('hidden');
+                document.getElementById('btn-continue-video').innerText = "Ver Resultado Final 🏆";
+
+                addInsightToJournal(secretQuestion.insight);
+            } else {
+                playErrorSound();
+                score = Math.max(score - 100, 100);
+                document.getElementById('score-counter').innerText = score;
+
+                feedbackPanel.className = "rounded-xl p-3 border border-rose-500/30 bg-rose-500/10 text-xs leading-relaxed transition-all duration-300 text-rose-300";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-base"></i>`;
+                feedbackTitle.innerText = "Hipótese Refutada! Repense a sua resposta.";
+                feedbackText.innerText = "Releia as opções com atenção — o fio condutor está presente em todos os exemplos do vídeo.";
+            }
+        }
+
         function resumeVideoAfterQuiz() {
+            const wasSecretQuiz = isSecretQuiz;
+
             document.getElementById('video-overlay').classList.add('hidden');
             document.getElementById('quiz-container').classList.add('hidden');
-            document.getElementById('quiz-empty-state').classList.remove('hidden');
-            
+
             isQuizActive = false;
-            
+            isSecretQuiz = false;
+
+            // Pergunta secreta respondida corretamente → vitória final
+            if (wasSecretQuiz && secretAnswered) {
+                triggerVictory();
+                return;
+            }
+
+            // Voltou de uma pergunta regular
             if (player && typeof player.playVideo === 'function') {
                 player.playVideo();
             }
@@ -879,8 +991,12 @@
             const correctCount = currentCheckpointAnswered.filter(Boolean).length;
             document.getElementById('badge-counter').innerText = `${correctCount}/4`;
 
+            // Todas as 4 regulares respondidas: mostra aviso de continuar assistindo
             if (correctCount === 4) {
-                triggerVictory();
+                document.getElementById('quiz-empty-state').classList.add('hidden');
+                document.getElementById('watch-to-end-panel').classList.remove('hidden');
+            } else {
+                document.getElementById('quiz-empty-state').classList.remove('hidden');
             }
         }
 
@@ -918,12 +1034,13 @@
             score = 1000;
             currentQuestionIndex = 0;
             isQuizActive = false;
+            isSecretQuiz = false;
             selectedOptionIdx = null;
             currentCheckpointAnswered = [false, false, false, false];
+            secretAnswered = false;
             maxUnlockedTime = 0;
             lastUserTime = 0;
 
-            // Nova seleção aleatória de questões para esta sessão
             selectActiveQuestions();
             renderTimeline();
 
@@ -936,9 +1053,15 @@
 
             document.getElementById('unlocked-progress-bar').style.width = "0%";
             document.getElementById('game-finished-panel').classList.add('hidden');
+            document.getElementById('watch-to-end-panel').classList.add('hidden');
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('quiz-empty-state').classList.remove('hidden');
             document.getElementById('video-overlay').classList.add('hidden');
+
+            // Reset do botão continuar (pode ter sido alterado pelo quiz secreto)
+            const btnContinue = document.getElementById('btn-continue-video');
+            btnContinue.innerText = '';
+            btnContinue.innerHTML = 'Desbloquear Vídeo <i class="fa-solid fa-circle-play"></i>';
 
             if (player && typeof player.seekTo === 'function') {
                 player.seekTo(0, true);
