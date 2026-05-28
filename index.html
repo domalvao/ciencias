@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
-    <title>Desafio de Ciências: Métodos e Técnicas</title>
+    <title>Laboratório Virtual: Ensino de Ciências — Métodos e Técnicas</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,6 +35,57 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col antialiased">
 
+    <!-- ═══════════════════════════════════════════════════════
+         SPLASH PAGE — IDENTIFICAÇÃO DO ALUNO
+    ═══════════════════════════════════════════════════════ -->
+    <div id="splash-screen" class="fixed inset-0 z-[999] flex items-center justify-center p-4"
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
+        <div class="w-full max-w-md bg-slate-900/90 border border-slate-700 rounded-3xl shadow-2xl shadow-indigo-950/50 p-8 flex flex-col gap-6 backdrop-blur-sm">
+
+            <!-- Ícone + Título -->
+            <div class="text-center space-y-3">
+                <div class="h-16 w-16 rounded-2xl bg-indigo-600 flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-flask text-white text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold title-font bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                    Laboratório Virtual de Didática
+                </h1>
+                <p class="text-sm text-slate-400">Ensino de Ciências: Métodos e Técnicas</p>
+            </div>
+
+            <!-- Campo Nome -->
+            <div class="space-y-2">
+                <label for="student-name-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    <i class="fa-solid fa-user-graduate mr-1.5 text-indigo-400"></i>Seu nome completo
+                </label>
+                <input
+                    id="student-name-input"
+                    type="text"
+                    placeholder="Digite seu nome para começar..."
+                    maxlength="60"
+                    class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    onkeydown="if(event.key==='Enter') startGame()"
+                />
+                <p id="name-error" class="text-xs text-rose-400 hidden">Por favor, insira seu nome para continuar.</p>
+            </div>
+
+            <!-- Botão Começar -->
+            <button onclick="startGame()"
+                class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-700/30 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-rocket"></i> Iniciar Investigação
+            </button>
+
+            <!-- Aviso de IA -->
+            <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0"></i>
+                <p class="text-[11px] text-amber-200/80 leading-relaxed">
+                    <span class="font-semibold text-amber-300">Aviso:</span> Este conteúdo foi produzido com apoio de IA generativa e pode conter imprecisões. Se identificar algum problema, entre em contato com o <span class="font-semibold text-amber-300">Alvão</span>.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
     <!-- HEADER DA APLICAÇÃO -->
     <header class="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -51,6 +102,11 @@
             </div>
             
             <div class="flex items-center gap-4">
+                <!-- Nome do aluno -->
+                <div id="student-name-badge" class="hidden bg-slate-900/90 border border-indigo-800/50 rounded-lg px-3 py-1.5 items-center gap-2">
+                    <i class="fa-solid fa-user-graduate text-indigo-400 text-xs"></i>
+                    <span id="student-name-display" class="text-xs font-semibold text-indigo-300 max-w-[130px] truncate"></span>
+                </div>
                 <div class="bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-2">
                     <i class="fa-solid fa-star text-amber-400"></i>
                     <span class="text-xs text-slate-400">Pontuação:</span>
@@ -205,7 +261,7 @@
                         </div>
                         <h4 class="font-bold text-white text-xl title-font">Investigação Concluída!</h4>
                         <p class="text-xs text-slate-300 px-2">
-                            Parabéns, Professor(a) em Formação! Superaste todos os dilemas pedagógicos e metodológicos do vídeo com distinção.
+                            Parabéns, <span id="victory-student-name" class="text-indigo-300 font-semibold"></span>! Superaste todos os dilemas pedagógicos e metodológicos do vídeo com distinção.
                         </p>
                         
                         <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-left space-y-2">
@@ -245,10 +301,10 @@
 
     <footer class="border-t border-slate-800/80 bg-slate-950/40 p-4 mt-8">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <p>© 2026 Laboratório Virtual de Didática das Ciências. Desenvolvido para formação ativa de professores.</p>
+            <p>© 2026 Laboratório Virtual de Didática. Ensino de Ciências: Métodos e Técnicas (UNIVESP).</p>
             <div class="flex items-center gap-4">
                 <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-indigo-400 font-mono font-semibold tracking-wide">
-                    v2.2 — Fix Polling · Sem Bolinhas · Pergunta Secreta
+                    v2.3 — Splash Page · Campo de Nome · Aviso de IA
                 </span>
                 <a href="#rules" onclick="toggleHelpModal()" class="hover:text-indigo-400 transition-colors"><i class="fa-solid fa-circle-info mr-1"></i> Como Jogar</a>
             </div>
@@ -384,7 +440,7 @@
     </script>
 
     <script>
-        // ─── BANCO COMPLETO DE PERGUNTAS (10 questões) ───────────────────────────
+        // ─── BANCO COMPLETO DE PERGUNTAS (10 questões — Ensino de Ciências) ────────
         const questionPool = [
             {
                 id: 0,
@@ -467,7 +523,7 @@
                 timestampLabel: "07:30",
                 questionText: "O vídeo classifica as atividades práticas em três categorias: Exercícios, Investigações e Projetos. Como é definida a categoria de 'Investigações'?",
                 options: [
-                    "Atividades onde o aluno recebe um problema aberto e precisa de desenhar a resolução, testando as suas próprias hipóteses e possibilidades.",
+                    "Atividades onde o aluno recebe um problema aberto e precisa desenhar a resolução, testando suas próprias hipóteses e possibilidades.",
                     "Aulas de laboratório que funcionam como puras 'receitas de cozinha' passo a passo.",
                     "Atividades onde o aluno tem total liberdade sem qualquer intervenção ou mediação do professor.",
                     "Exercícios puramente matemáticos de memorização de fórmulas sem ligação a problemas físicos."
@@ -542,11 +598,11 @@
         const MAX_CHECKPOINTS = 4;
         let activeQuestions = [];
 
-        // ─── PERGUNTA SECRETA FINAL (não aparece no pool nem na timeline) ─────────
+        // ─── PERGUNTA SECRETA FINAL ───────────────────────────────────────────────
         const secretQuestion = {
             timestamp: 840,
             timestampLabel: "14:00",
-            questionText: "🔒 Desafio Final Secreto — Síntese Didática: Considerando todo o percurso do documentário, qual é o fio condutor que une todas as práticas exemplificadas (observação solar, quotidiano, investigações e classificação)?",
+            questionText: "🔒 Desafio Final Secreto — Síntese Didática: Considerando todo o percurso do documentário, qual é o fio condutor que une todas as práticas exemplificadas — observação solar, quotidiano, investigações e classificação de animais?",
             options: [
                 "A utilização exclusiva de laboratórios equipados e materiais de alta tecnologia como condição indispensável para o ensino científico.",
                 "A memorização progressiva de conteúdos teóricos como base obrigatória para qualquer atividade prática posterior.",
@@ -586,8 +642,38 @@
             if (container) container.innerHTML = '';
         }
 
-        window.onload = function() {
+        // ─── NOME DO ALUNO ────────────────────────────────────────────────────────
+        let studentName = '';
+
+        function startGame() {
+            const input = document.getElementById('student-name-input');
+            const name = input.value.trim();
+            if (!name) {
+                document.getElementById('name-error').classList.remove('hidden');
+                input.focus();
+                return;
+            }
+            studentName = name;
+
+            // Mostra o nome no header
+            document.getElementById('student-name-display').textContent = studentName;
+            const badge = document.getElementById('student-name-badge');
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+
+            // Esconde a splash e mostra o jogo
+            document.getElementById('splash-screen').style.opacity = '0';
+            document.getElementById('splash-screen').style.transition = 'opacity 0.4s ease';
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.display = 'none';
+            }, 400);
+
             initGame();
+        }
+
+        window.onload = function() {
+            // Jogo só inicia após a splash — não chama initGame aqui
+            document.getElementById('student-name-input').focus();
         };
 
         function initGame() {
@@ -1005,7 +1091,8 @@
             document.getElementById('quiz-empty-state').classList.add('hidden');
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('game-finished-panel').classList.remove('hidden');
-            
+            const nameEl = document.getElementById('victory-student-name');
+            if (nameEl) nameEl.textContent = studentName || 'Professor(a) em Formação';
             score += 500;
             document.getElementById('score-counter').innerText = score;
         }
